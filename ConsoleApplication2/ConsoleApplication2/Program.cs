@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Discord;
 using Discord.API;
 using Discord.Commands;
+using System.Configuration;
 
 namespace JeanGuyTremblayBot
 {
@@ -19,11 +20,12 @@ namespace JeanGuyTremblayBot
 
         static void Main(string[] args)
         {
+            //Instancie un bot avec un login et un client
             DiscordBot bot = new DiscordBot(new DiscordClient(new DiscordClientConfig
             {
                 LogLevel = LogMessageSeverity.Debug
-            }), _USERNAME, _PSWD);
-            
+            }));
+
             Console.WriteLine("closing...");
             Console.ReadKey();
         }

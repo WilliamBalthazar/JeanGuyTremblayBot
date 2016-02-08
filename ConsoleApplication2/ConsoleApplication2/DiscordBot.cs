@@ -10,11 +10,18 @@ using Discord.API;
 using Discord.Modules;
 using Discord.Audio;
 using System.Threading;
+using System.Configuration;
 
 namespace JeanGuyTremblayBot
 {
+    /// <summary>
+    /// Représente un bot d'utilité et d'humour pour Discord
+    /// </summary>
     class DiscordBot
     {
+        /// <summary>
+        /// Représente le temps donnée en millisecondes
+        /// </summary>
         public enum Temps
         {
             _15_MINUTES = 900000,
@@ -22,13 +29,13 @@ namespace JeanGuyTremblayBot
             _60_MINUTES = 3600000
         }
 
-        private const string _SERVER_NAME = "Pas Jean-Guy Tremblay";
-
         private DiscordClient _client;
         private Server _currentServer;
         private Channel _currentTextChannel;
         private Channel _currentVoiceChannel;
+
         private Timer _timer;
+        AppSettingsReader _reader;
 
         #region Accesseurs
         public DiscordClient Client
@@ -64,25 +71,44 @@ namespace JeanGuyTremblayBot
         }
         #endregion
 
-        public DiscordBot(DiscordClient client, string username, string pswd)
+        /// <summary>
+        /// Constructeur
+        /// </summary>
+        /// <param name="client">Client Discord utilisé</param>
+        /// <param name="username">Email de connection</param>
+        /// <param name="pswd">Mot de passe du compte</param>
+        public DiscordBot(DiscordClient client)
         {
             _client = client;
-            Connect(username, pswd);
+            Connect();
         }
 
+        /// <summary>
+        /// Callback appelé lors du tick du _timer
+        /// </summary>
+        /// <param name="o"></param>
         private void TimerCallBack(object o)
         {
             BotWrite("Welcome to the server that does not belong to Jean-Guy Tremblay! I am BotBalthyy. Feel free to use !b help for further info!");
-            
+
             GC.Collect();
         }
 
-        public void Connect(string username, string pswd)
+        /// <summary>
+        /// Démarre le client et connecte le bot au serveur Discord.
+        /// </summary>
+        /// <param name="username">Email de connection</param>
+        /// <param name="pswd">Mot de passe du compte</param>
+        public void Connect()
         {
+            _reader = new AppSettingsReader();
+
             _client.Run(async () =>
             {
-                await _client.Connect(username, pswd);
-                Initialize(username, pswd);
+                await _client.Connect(_reader.GetValue("BotUsername", typeof(string)).ToString(),
+                    _reader.GetValue("BotPassword", typeof(string)).ToString());
+
+                Initialize();
 
                 _client.MessageReceived += _client_MessageReceived;
 
@@ -92,6 +118,11 @@ namespace JeanGuyTremblayBot
             });
         }
 
+        /// <summary>
+        /// Évènement trigger lorsqu'un message est reçu par le bot
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void _client_MessageReceived(object sender, MessageEventArgs e)
         {
             if (!e.Message.IsAuthor)
@@ -101,7 +132,6 @@ namespace JeanGuyTremblayBot
 
                 if (arrayMsg[0] == "!b" && arrayMsg.Length > 1)
                 {
-
                     switch (arrayMsg[1])
                     {
                         case "hi":
@@ -137,22 +167,36 @@ namespace JeanGuyTremblayBot
             }
         }
 
-        private void Initialize(string username, string pswd)
+        /// <summary>
+        /// Initialise les infos nécessaires au fonctionnement du bot ainsi que le _timer
+        /// </summary>
+        private void Initialize()
         {
-            _currentServer = _client.AllServers.First(c => c.Name == _SERVER_NAME);
-            _currentTextChannel = _currentServer.TextChannels.First();
-            _currentVoiceChannel = _currentServer.VoiceChannels.First();
-
-            _timer = new Timer(TimerCallBack, null, 0, Convert.ToInt32(Temps._15_MINUTES));
+            _currentServer = _client.AllServers.First(c => c.Name == _reader.GetValue("MainServerName", typeof(string)).ToString());
+            _currentTextChannel = _currentServer.TextChannels.First(t => t.Name == _reader.GetValue("MainTextChannel", typeof(string)).ToString());
+            _currentVoiceChannel = _currentServer.VoiceChannels.First(t => t.Name == _reader.GetValue("BotVoiceChannel", typeof(string)).ToString());
 
             BotWrite("BotBalthyy initialized.");
+
+            _timer = new Timer(TimerCallBack, null, 0, Convert.ToInt32(Temps._15_MINUTES));
         }
 
+        /// <summary>
+        /// Écrit un message dans le serveur et le TextChannel courant.
+        /// </summary>
+        /// <param name="message">Message à envoyer</param>
+        /// <param name="tts">Text To Speech</param>
         public void BotWrite(string message, bool tts = false)
         {
             BotWrite(message, _currentTextChannel, tts);
         }
 
+        /// <summary>
+        /// Écrit un message dans le serveur courant, dans le textChannel spécifié.
+        /// </summary>
+        /// <param name="message">Message à envoyer</param>
+        /// <param name="channel">TextChannel cible</param>
+        /// <param name="tts">Text To Speech</param>
         public void BotWrite(string message, Channel channel, bool tts = false)
         {
             if (tts)
@@ -161,25 +205,70 @@ namespace JeanGuyTremblayBot
                 _client.SendMessage(channel, message);
         }
 
+        /// <summary>
+        /// Écrit un message dans le serveur courant, dans le TextChannel spécifié par le nom.
+        /// </summary>
+        /// <param name="message">Message à envoyer</param>
+        /// <param name="textChannelName">Nom du TextChannel cible</param>
+        /// <param name="tts">Text To Speech</param>
         public void BotWrite(string message, string textChannelName, bool tts = false)
         {
-            BotWrite(message, _currentServer.Channels.First(c => c.Name == textChannelName), tts);
+            try
+            {
+                BotWrite(message, _currentServer.Channels.First(c => c.Name == textChannelName), tts);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
         }
 
+        /// <summary>
+        /// Envoit un message privé à l'utilisateur ciblé.
+        /// </summary>
+        /// <param name="user">Utilisateur cible</param>
+        /// <param name="message">Message à envoyer</param>
         public async void BotPrivateWrite(User user, string message)
         {
             await _client.SendPrivateMessage(user, message);
         }
 
+        /// <summary>
+        /// Envoit un message privé à tous les utilisateurs spécifiés.
+        /// </summary>
+        /// <param name="users">Utilisateurs cibles</param>
+        /// <param name="message">Message à envoyer</param>
         public void BotPrivateWrite(List<User> users, string message)
         {
             foreach (User user in users)
                 BotPrivateWrite(user, message);
         }
 
+        /// <summary>
+        /// Envoit un message privé à tous les utilisateurs du serveur courant.
+        /// </summary>
+        /// <param name="message">Message à envoyer</param>
+        public void BotPrivateWrite(string message)
+        {
+            foreach (User user in _currentServer.Members)
+                BotPrivateWrite(user, message);
+        }
+
+        /// <summary>
+        /// Envoit un message privé à l'utilisateur ciblé par son nom.
+        /// </summary>
+        /// <param name="username">Nom de l'utilisateur cible</param>
+        /// <param name="message">Message à envoyer</param>
         public void BotPrivateWrite(string username, string message)
         {
-            BotPrivateWrite(_currentServer.Members.First(u => u.Name == username), message);
+            try
+            {
+                BotPrivateWrite(_currentServer.Members.First(u => u.Name == username), message);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
         }
     }
 }
