@@ -9,17 +9,26 @@ using Discord.Commands.Permissions;
 using Discord.API;
 using Discord.Modules;
 using Discord.Audio;
+using System.Threading;
 
 namespace JeanGuyTremblayBot
 {
     class DiscordBot
     {
+        public enum Temps
+        {
+            _15_MINUTES = 900000,
+            _30_MINUTES = 1800000,
+            _60_MINUTES = 3600000
+        }
+
         private const string _SERVER_NAME = "Pas Jean-Guy Tremblay";
 
         private DiscordClient _client;
         private Server _currentServer;
         private Channel _currentTextChannel;
         private Channel _currentVoiceChannel;
+        private Timer _timer;
 
         #region Accesseurs
         public DiscordClient Client
@@ -61,6 +70,13 @@ namespace JeanGuyTremblayBot
             Connect(username, pswd);
         }
 
+        private void TimerCallBack(object o)
+        {
+            BotWrite("Welcome to the server that does not belong to Jean-Guy Tremblay! I am BotBalthyy. Feel free to use !b help for further info!");
+            
+            GC.Collect();
+        }
+
         public void Connect(string username, string pswd)
         {
             _client.Run(async () =>
@@ -69,23 +85,11 @@ namespace JeanGuyTremblayBot
                 Initialize(username, pswd);
 
                 _client.MessageReceived += _client_MessageReceived;
-                _client.UserLeft += _client_UserLeft;
-                _client.LeftServer += _client_LeftServer;
 
                 Console.WriteLine("Awaiting further commands...");
                 Console.ReadLine();
                 Environment.Exit(0);
             });
-        }
-
-        private void _client_LeftServer(object sender, ServerEventArgs e)
-        {
-            BotWrite("Someone has left the server!", true);
-        }
-
-        private void _client_UserLeft(object sender, UserEventArgs e)
-        {
-            BotWrite(e.User.Name + " has left the channel!", true);
         }
 
         private void _client_MessageReceived(object sender, MessageEventArgs e)
@@ -102,6 +106,9 @@ namespace JeanGuyTremblayBot
                     {
                         case "hi":
                             BotWrite("Hello!", true);
+                            break;
+                        case "help":
+                            BotWrite("Jean-Guy Tremblay Discord Bot Helper! \r\n !b help -> Help \r\n !b hi -> Say hi! \r\n Random easter eggs all around!");
                             break;
                         default:
                             BotWrite("Unrecognised command.", true);
@@ -136,15 +143,7 @@ namespace JeanGuyTremblayBot
             _currentTextChannel = _currentServer.TextChannels.First();
             _currentVoiceChannel = _currentServer.VoiceChannels.First();
 
-            Role role = _client.FindRoles(_currentServer, "BotBalthyy").First();
-            User user = _currentServer.Members.First(u => u.Id == _client.CurrentUserId);
-
-            List<Role> roles = user.Roles.ToList();
-            if (!roles.Contains(role))
-            {
-                roles.Add(role);
-                _client.EditUser(user, roles: roles);
-            }
+            _timer = new Timer(TimerCallBack, null, 0, Convert.ToInt32(Temps._15_MINUTES));
 
             BotWrite("BotBalthyy initialized.");
         }
