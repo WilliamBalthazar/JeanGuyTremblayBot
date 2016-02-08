@@ -111,11 +111,25 @@ namespace JeanGuyTremblayBot
                 Initialize();
 
                 _client.MessageReceived += _client_MessageReceived;
+                _client.MessageUpdated += _client_MessageUpdated;
+                _client.MessageDeleted += _client_MessageDeleted;
 
                 Console.WriteLine("Awaiting further commands...");
                 Console.ReadLine();
                 Environment.Exit(0);
             });
+        }
+
+        private void _client_MessageDeleted(object sender, MessageEventArgs e)
+        {
+            Console.WriteLine(e.User.Name + " deleted a message belonging to " + e.Message.User.Name + ": " + e.Message.RawText);
+            Console.WriteLine(" in @" + e.Server.Name + @"/#" + e.Message.Channel.Name + " at " + DateTime.Now.ToShortTimeString());
+        }
+
+        private void _client_MessageUpdated(object sender, MessageEventArgs e)
+        {
+            Console.WriteLine(e.User.Name + " edited a message belonging to " + e.Message.User.Name + " :" + e.Message.RawText);
+            Console.WriteLine(" in @" + e.Server.Name + @"/#" + e.Message.Channel.Name + " at " + e.Message.EditedTimestamp.Value.ToShortTimeString());
         }
 
         /// <summary>
@@ -127,6 +141,9 @@ namespace JeanGuyTremblayBot
         {
             if (!e.Message.IsAuthor)
             {
+                Console.WriteLine(e.Message.User.Name + " :" + e.Message.RawText);
+                Console.WriteLine(" in @" + e.Server.Name + @"/#" + e.Message.Channel.Name + " at " + e.Message.Timestamp.ToShortTimeString());
+
                 string msg = e.Message.RawText;
                 string[] arrayMsg = msg.Split(' ');
 

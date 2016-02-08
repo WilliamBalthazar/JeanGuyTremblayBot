@@ -20,6 +20,8 @@ namespace JeanGuyTremblayBot
 
         static void Main(string[] args)
         {
+            Console.Title = "Jean Guy Tremblay Bot";
+
             //Instancie un bot avec un login et un client
             DiscordBot bot = new DiscordBot(new DiscordClient(new DiscordClientConfig
             {
