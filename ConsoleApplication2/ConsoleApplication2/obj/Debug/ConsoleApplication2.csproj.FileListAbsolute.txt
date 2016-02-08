@@ -16,3 +16,6 @@ c:\users\balthyy\documents\visual studio 2015\Projects\ConsoleApplication2\Conso
 c:\users\balthyy\documents\visual studio 2015\Projects\ConsoleApplication2\ConsoleApplication2\obj\Debug\ConsoleApplication2.csprojResolveAssemblyReference.cache
 c:\users\balthyy\documents\visual studio 2015\Projects\ConsoleApplication2\ConsoleApplication2\obj\Debug\ConsoleApplication2.exe
 c:\users\balthyy\documents\visual studio 2015\Projects\ConsoleApplication2\ConsoleApplication2\obj\Debug\ConsoleApplication2.pdb
+C:\Users\Balthyy\Documents\JeanGuyTremblayBot\ConsoleApplication2\ConsoleApplication2\bin\Debug\ConsoleApplication2.exe.config
+C:\Users\Balthyy\Documents\JeanGuyTremblayBot\ConsoleApplication2\ConsoleApplication2\obj\Debug\ConsoleApplication2.exe
+C:\Users\Balthyy\Documents\JeanGuyTremblayBot\ConsoleApplication2\ConsoleApplication2\obj\Debug\ConsoleApplication2.pdb

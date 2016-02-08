@@ -7,13 +7,13 @@ using Discord;
 using Discord.API;
 using Discord.Commands;
 
-namespace ConsoleApplication2
+namespace JeanGuyTremblayBot
 {
     class Program
     {
 
         #region hey
-        const string _PSWD = "balthazar5";
+        const string _PSWD = "jgt_bot";
         const string _USERNAME = "williambalthazar@outlook.com";
         #endregion
 

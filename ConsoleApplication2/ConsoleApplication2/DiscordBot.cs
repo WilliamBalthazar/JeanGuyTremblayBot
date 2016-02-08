@@ -10,7 +10,7 @@ using Discord.API;
 using Discord.Modules;
 using Discord.Audio;
 
-namespace ConsoleApplication2
+namespace JeanGuyTremblayBot
 {
     class DiscordBot
     {
